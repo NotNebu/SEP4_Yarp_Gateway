@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: .
+    ports:
+      - "8080:80"

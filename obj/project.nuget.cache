@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "HN+h9ML/hcU=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Nebul\\Desktop\\SEP4_User_Microservice\\ApiGateway.Yarp\\ApiGateway.Yarp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Nebul\\.nuget\\packages\\system.io.hashing\\8.0.0\\system.io.hashing.8.0.0.nupkg.sha512",
+    "C:\\Users\\Nebul\\.nuget\\packages\\yarp.reverseproxy\\2.3.0\\yarp.reverseproxy.2.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}
