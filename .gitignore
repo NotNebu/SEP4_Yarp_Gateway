@@ -1,0 +1,51 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Auto-generated files
+Generated_Code/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET
+appsettings.Development.json
+
+# User secrets
+secrets.json
+
+# Docker
+**/*.pid
+docker-compose.override.yml
+*.log
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.*
+
+# Coverage / Test Results
+TestResults/
+coverage/
+
+# Misc
+.DS_Store
+Thumbs.db
