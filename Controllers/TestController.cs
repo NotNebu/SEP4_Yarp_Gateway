@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using UserServiceProto;
+
 [ApiController]
 [Route("api/test")]
 public class TestController : ControllerBase

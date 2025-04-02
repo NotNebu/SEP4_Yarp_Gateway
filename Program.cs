@@ -1,4 +1,5 @@
 using Yarp.ReverseProxy;
+using UserServiceProto;
 
 var builder = WebApplication.CreateBuilder(args);
 
