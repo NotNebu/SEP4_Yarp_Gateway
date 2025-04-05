@@ -1,30 +1,47 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Yarp.ReverseProxy;
-using UserServiceProto;
+using ApiGateway.Application.Interfaces;
+using ApiGateway.Infrastructure.GrpcClients;
+using UserService.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Tvinger http for at teste Curl :~D
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenLocalhost(5107); // HTTP
+    options.ListenAnyIP(5107, listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+    });
 });
 
-// Forbindelse til gRPC User Klienten
-builder.Services.AddGrpcClient<Greeter.GreeterClient>(o =>
+builder.Services.AddCors(options =>
 {
-    o.Address = new Uri("http://localhost:5001"); 
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
 });
+
+builder.Services.AddScoped<IUserService, UserServiceClient>();
 builder.Services.AddControllers();
 
-// Load config from appsettings.json
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
+builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
+{
+    o.Address = new Uri("http://user-service:5001");
+});
+
 var app = builder.Build();
 
-app.MapGet("/health", () => Results.Ok("Gateway is running"));
+app.UseCors("AllowAll");
 
-// Use the YARP middleware
+app.MapGet("/health", () => Results.Ok("Gateway is running"));
 app.MapReverseProxy();
+app.MapControllers();
 
 app.Run();
