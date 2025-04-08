@@ -1,4 +1,4 @@
-name: Build and Push YARP Gateway
+name: YARP Gateway
 
 on:
   push:

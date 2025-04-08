@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
 using ApiGateway.Application.Interfaces;
 using ApiGateway.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ApiGateway.API.Controllers
 {
@@ -32,8 +32,13 @@ namespace ApiGateway.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            var success = await _userService.RegisterAsync(request.Email, request.Password, request.Username);
-            if (!success) return Conflict("Bruger med denne email findes allerede.");
+            var success = await _userService.RegisterAsync(
+                request.Email,
+                request.Password,
+                request.Username
+            );
+            if (!success)
+                return Conflict("Bruger med denne email findes allerede.");
             return Ok(new { Success = true });
         }
 
