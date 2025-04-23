@@ -14,6 +14,14 @@ builder.Services.AddGrpcClient<Greeter.GreeterClient>(o =>
 {
     o.Address = new Uri("http://localhost:5001"); 
 });
+
+//forbindelse til .net core http client
+builder.Services.AddHttpClient("MalAPI", c =>
+{
+    c.BaseAddress = new Uri("http://localhost:5019");
+});
+
+
 builder.Services.AddControllers();
 
 // Load config from appsettings.json
@@ -25,6 +33,7 @@ var app = builder.Build();
 app.MapGet("/health", () => Results.Ok("Gateway is running"));
 
 // Use the YARP middleware
+app.MapControllers();
 app.MapReverseProxy();
 
 app.Run();
