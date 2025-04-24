@@ -44,5 +44,18 @@ namespace ApiGateway.Yarp.Controllers.Mal
 
             return StatusCode((int)response.StatusCode, result);
         }
+        
+        
+        [HttpPost("predict")]
+        public async Task<IActionResult> PostPredictionRequest([FromBody] object modelData)
+        {
+            var json = JsonConvert.SerializeObject(modelData);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/predict", content);
+            var result = await response.Content.ReadAsStringAsync();
+
+            return StatusCode((int)response.StatusCode, result);
+        }
     }
 }
