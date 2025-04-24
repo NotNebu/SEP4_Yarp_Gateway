@@ -18,17 +18,22 @@ builder.WebHost.ConfigureKestrel(options =>
     );
 });
 
-// Tillad alle CORS-anmodninger
+// Tillad CORS-anmodninger på port 3000 fra frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(
-        "AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        }
-    );
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:5173",              // Lokalt udviklingsmiljø (npm run dev)
+            "http://localhost:3000",              // Docker udviklingsmiljø (docker compose up)
+            "http://growheat-frontend:3000"       // Når frontend kører i Docker
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
 });
+
 
 // Registrer IUserService-implementationen, som benytter gRPC til at tale med user-service
 builder.Services.AddScoped<IUserService, UserServiceClient>();
@@ -42,13 +47,13 @@ builder.Services.AddReverseProxy().LoadFromConfig(builder.Configuration.GetSecti
 // Konfigurer gRPC-klienten til AuthService, og peger mod user-service-containeren via Docker-netværk
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
 {
-    o.Address = new Uri("http://user-service:5001"); // internt DNS-navn i docker-compose
+    o.Address = new Uri("http://user-service:5001"); 
 });
 
 var app = builder.Build();
 
 // Brug CORS-politikken defineret ovenfor
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 // Simpelt healthcheck-endpoint
 app.MapGet("/health", () => Results.Ok("Gateway is running"));

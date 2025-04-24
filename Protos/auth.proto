@@ -18,7 +18,7 @@ service AuthService {
 // Login-anmodning med email og adgangskode
 message LoginRequest {
   string email = 1;     // Brugerens emailadresse
-  string password = 2;  // Brugerens adgangskode (i klartekst, sendt via HTTPS)
+  string password = 2;  // Brugerens adgangskode
 }
 
 // Svar på login, indeholder JWT-token

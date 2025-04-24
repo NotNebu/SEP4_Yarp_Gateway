@@ -50,6 +50,9 @@ namespace UserService.Grpc {
 
   }
   #region Messages
+  /// <summary>
+  /// Login-anmodning med email og adgangskode
+  /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class LoginRequest : pb::IMessage<LoginRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -99,6 +102,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "email" field.</summary>
     public const int EmailFieldNumber = 1;
     private string email_ = "";
+    /// <summary>
+    /// Brugerens emailadresse
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Email {
@@ -111,6 +117,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "password" field.</summary>
     public const int PasswordFieldNumber = 2;
     private string password_ = "";
+    /// <summary>
+    /// Brugerens adgangskode
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Password {
@@ -285,6 +294,9 @@ namespace UserService.Grpc {
 
   }
 
+  /// <summary>
+  /// Svar på login, indeholder JWT-token
+  /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class LoginResponse : pb::IMessage<LoginResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -333,6 +345,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "token" field.</summary>
     public const int TokenFieldNumber = 1;
     private string token_ = "";
+    /// <summary>
+    /// JWT-token der bruges til autentificering
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Token {
@@ -483,6 +498,9 @@ namespace UserService.Grpc {
 
   }
 
+  /// <summary>
+  /// Registreringsanmodning med email, adgangskode og brugernavn
+  /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RegisterRequest : pb::IMessage<RegisterRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -533,6 +551,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "email" field.</summary>
     public const int EmailFieldNumber = 1;
     private string email_ = "";
+    /// <summary>
+    /// Email for ny bruger
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Email {
@@ -545,6 +566,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "password" field.</summary>
     public const int PasswordFieldNumber = 2;
     private string password_ = "";
+    /// <summary>
+    /// Adgangskode
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Password {
@@ -557,6 +581,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "username" field.</summary>
     public const int UsernameFieldNumber = 3;
     private string username_ = "";
+    /// <summary>
+    /// Ønsket brugernavn
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
@@ -755,6 +782,9 @@ namespace UserService.Grpc {
 
   }
 
+  /// <summary>
+  /// Svar på registrering, angiver om det lykkedes
+  /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RegisterResponse : pb::IMessage<RegisterResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -803,6 +833,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "success" field.</summary>
     public const int SuccessFieldNumber = 1;
     private bool success_;
+    /// <summary>
+    /// True hvis registrering lykkedes
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Success {
@@ -953,6 +986,9 @@ namespace UserService.Grpc {
 
   }
 
+  /// <summary>
+  /// Anmodning om brugerdata baseret på token
+  /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class UserRequest : pb::IMessage<UserRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -1001,6 +1037,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "token" field.</summary>
     public const int TokenFieldNumber = 1;
     private string token_ = "";
+    /// <summary>
+    /// JWT-token sendt fra klient
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Token {
@@ -1151,6 +1190,9 @@ namespace UserService.Grpc {
 
   }
 
+  /// <summary>
+  /// Svar med brugerens data
+  /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class UserResponse : pb::IMessage<UserResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -1200,6 +1242,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "email" field.</summary>
     public const int EmailFieldNumber = 1;
     private string email_ = "";
+    /// <summary>
+    /// Brugerens email
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Email {
@@ -1212,6 +1257,9 @@ namespace UserService.Grpc {
     /// <summary>Field number for the "username" field.</summary>
     public const int UsernameFieldNumber = 2;
     private string username_ = "";
+    /// <summary>
+    /// Brugerens brugernavn
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
