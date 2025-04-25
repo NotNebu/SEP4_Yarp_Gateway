@@ -82,4 +82,6 @@ namespace ApiGateway.Yarp.Controllers.Mal
             return StatusCode((int)response.StatusCode, result);
         }
     }
+    
+    //
 }

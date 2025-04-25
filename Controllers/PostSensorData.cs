@@ -22,4 +22,8 @@ public class PostSensorData
     public string Timestamp { get; set; }
     public string SoilType { get; set; }
     public string FertilizerType { get; set; }
+    
+    //
 }
+
+
