@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text;
+using APII;
 using Newtonsoft.Json;
 
 namespace ApiGateway.Yarp.Controllers.Mal
@@ -34,16 +35,39 @@ namespace ApiGateway.Yarp.Controllers.Mal
         }
 
         [HttpPost("sensors")]
-        public async Task<IActionResult> PostSensorData([FromBody] object data)
+        public async Task<IActionResult> PostSensorData([FromBody] PostSensorData data)
         {
-            var json = JsonConvert.SerializeObject(data);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            try
+            {
+                // Serialize the sensor data object into JSON
+                var json = JsonConvert.SerializeObject(data);
 
-            var response = await _httpClient.PostAsync("/api/sensor", content);
-            var result = await response.Content.ReadAsStringAsync();
+                // Create the content with the serialized JSON
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return StatusCode((int)response.StatusCode, result);
+                // Make the POST request to the external sensor API
+                var response = await _httpClient.PostAsync("/api/sensor", content);
+
+                // Read the response content
+                var result = await response.Content.ReadAsStringAsync();
+
+                // Check if the request was successful and return appropriate response
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok("Sensor data sent successfully.");
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, result); // Return the status code with error message
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions during the request
+                return BadRequest($"Error sending sensor data: {ex.Message}");
+            }
         }
+
         
         
         [HttpPost("predict")]
