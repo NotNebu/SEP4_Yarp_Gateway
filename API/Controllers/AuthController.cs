@@ -16,18 +16,28 @@ namespace ApiGateway.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+{
+    try
+    {
+        var token = await _userService.LoginAsync(request.Email, request.Password);
+
+        Response.Cookies.Append("jwt", token, new CookieOptions
         {
-            try
-            {
-                var token = await _userService.LoginAsync(request.Email, request.Password);
-                return Ok(new { Token = token });
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized("Ugyldige loginoplysninger.");
-            }
-        }
+            HttpOnly = true,
+            Secure = false, // OBS: True kræver HTTPS (Kommer senere)
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddHours(1)
+        });
+
+        return Ok(new { Message = "Login successful" });
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Unauthorized("Ugyldige loginoplysninger.");
+    }
+}
+
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
@@ -43,18 +53,39 @@ namespace ApiGateway.API.Controllers
         }
 
         [HttpGet("me")]
-        public async Task<IActionResult> GetUser()
-        {
-            var token = Request.Headers["Authorization"].FirstOrDefault()?.Replace("Bearer ", "");
+public async Task<IActionResult> GetUser()
+{
+    var token = Request.Cookies["jwt"];
 
-            if (string.IsNullOrWhiteSpace(token))
-                return Unauthorized("Token mangler.");
+    if (string.IsNullOrWhiteSpace(token))
+        return Unauthorized("Token mangler.");
 
-            var user = await _userService.GetUserAsync(token);
-            if (user == null)
-                return Unauthorized("Ugyldigt token.");
+    var user = await _userService.GetUserAsync(token);
+    if (user == null)
+        return Unauthorized("Ugyldigt token.");
 
-            return Ok(user);
-        }
-    }
+    return Ok(user);
 }
+
+
+    [HttpPost("logout")]
+public IActionResult Logout()
+{
+    Response.Cookies.Append("jwt", "", new CookieOptions
+    {
+        Expires = DateTimeOffset.UtcNow.AddDays(-1),
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.Strict
+    });
+
+    return Ok(new { Message = "Logout successful" });
+}
+
+    
+    }
+
+
+
+}
+

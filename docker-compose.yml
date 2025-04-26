@@ -6,11 +6,11 @@ services:
       context: .                 # Byg Docker-image ud fra Dockerfile i rodmappen
     container_name: yarp-gateway
     ports:
-      - "8080:80"                # Gør YARP Gateway tilgængelig på localhost:8080 → container:80
-    restart: unless-stopped      # Genstart automatisk hvis den fejler
-    networks:
-      - sep4_network             # Tilføj til fælles netværk            
+      - "5107:5107"              # Gør YARP Gateway tilgængelig på localhost:5107
+    restart: unless-stopped
+    networks:                   
+      - SEP4_NETWORK            # Tilknyt gateway til det eksterne netværk
 
 networks:
-  sep4_network:
-    driver: bridge               # Docker bridge-netværk
+  SEP4_NETWORK:
+    external: true
