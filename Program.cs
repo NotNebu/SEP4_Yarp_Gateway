@@ -45,13 +45,13 @@ builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
 
 builder.Services.AddHttpClient("MalAPI", c =>
 {
-    c.BaseAddress = new Uri("http://localhost:5019");
+    c.BaseAddress = new Uri("http://localhost:5020");
 });
 
 // Tilføj controllere
 builder.Services.AddControllers();
 
-// Konfigurer YARP + tilføj CORS headers til proxy-responses
+// Konfigurer YARP + tilføj CORS headers til proxy-responses blabla
 builder.Services
     .AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
@@ -65,7 +65,7 @@ builder.Services
 
 var app = builder.Build();
 
-// Routing og CORS først
+// Routing og CORS
 app.UseRouting();
 app.UseCors("AllowFrontend");
 
