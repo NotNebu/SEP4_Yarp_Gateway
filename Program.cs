@@ -43,6 +43,11 @@ builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
     o.Address = new Uri("http://user-service:5001");
 });
 
+builder.Services.AddHttpClient("MalAPI", c =>
+{
+    c.BaseAddress = new Uri("http://localhost:5019");
+});
+
 // Tilføj controllere
 builder.Services.AddControllers();
 
