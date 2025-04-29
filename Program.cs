@@ -14,6 +14,14 @@ builder.Services.AddGrpcClient<Greeter.GreeterClient>(o =>
 {
     o.Address = new Uri("http://localhost:5001"); 
 });
+
+builder.Services.AddHttpClient("IotAPI", c =>
+{
+    var baseUrl = builder.Configuration["SpringBootApi:BaseUrl"] ?? "http://localhost:8080";
+    c.BaseAddress = new Uri(baseUrl);
+    c.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
 builder.Services.AddControllers();
 
 // Load config from appsettings.json
