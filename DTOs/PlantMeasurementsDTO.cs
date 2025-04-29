@@ -17,7 +17,7 @@ namespace ApiGateway.DTOs
 
         public double JordFugtighed { get; set; }
 
-        public double LysIndstilling { get; set; }
+        public string LysIndstilling { get; set; }
 
         public double LysHøjesteIntensitet { get; set; }
 
