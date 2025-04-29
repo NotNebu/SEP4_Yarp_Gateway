@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Text;
 using APII;
 using Newtonsoft.Json;
+using ApiGateway.DTOs;
 
 namespace ApiGateway.Yarp.Controllers.Mal
 {
@@ -21,7 +22,7 @@ namespace ApiGateway.Yarp.Controllers.Mal
         [HttpGet("sensors")]
         public async Task<IActionResult> GetSensorData()
         {
-            var response = await _httpClient.GetAsync("/api/sensor");
+            var response = await _httpClient.GetAsync("/api/Sensor");
             var content = await response.Content.ReadAsStringAsync();
             return Content(content, "application/json");
         }
@@ -33,6 +34,15 @@ namespace ApiGateway.Yarp.Controllers.Mal
             var content = await response.Content.ReadAsStringAsync();
             return Content(content, "application/json");
         }
+
+
+[HttpGet("train-model")]
+public async Task<IActionResult> TrainModel()
+{
+    var response = await _httpClient.GetAsync("/api/sensor/train-model");
+    var content = await response.Content.ReadAsStringAsync();
+    return Content(content, "application/json");
+}
 
         [HttpPost("sensors")]
         public async Task<IActionResult> PostSensorData([FromBody] PostSensorData data)

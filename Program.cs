@@ -45,7 +45,12 @@ builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
 
 builder.Services.AddHttpClient("MalAPI", c =>
 {
-    c.BaseAddress = new Uri("http://localhost:5020");
+    c.BaseAddress = new Uri("http://Sep4-API-Service:8080");
+});
+
+builder.Services.AddHttpClient("IotAPI", c =>
+{
+    c.BaseAddress = new Uri("http://iot-container:8080");
 });
 
 // Tilføj controllere
