@@ -8,12 +8,10 @@ namespace ApiGateway.Yarp.Controllers.Iot
     public class IotController : ControllerBase
     {
         private readonly HttpClient _httpClient;
-        private readonly string _springBootApiBaseUrl;
 
         public IotController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient("IotAPI");
-            _springBootApiBaseUrl = configuration["SpringBootApi:BaseUrl"] ?? "http://localhost:8080";
 
         }
 
