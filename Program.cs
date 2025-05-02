@@ -1,43 +1,97 @@
-using ApiGateway.Application.Interfaces;
-using ApiGateway.Infrastructure.GrpcClients;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.IdentityModel.Tokens;
 using UserService.Grpc;
 using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Transforms;
+using DotNetEnv;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Konfigurer Kestrel til både HTTP/1.1 og HTTP/2 (krævet for gRPC)
+// ------------------- KESTREL -------------------
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(
-        5107,
-        listenOptions =>
-        {
-            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-        }
-    );
+    options.ListenAnyIP(5107, listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+    });
 });
 
-// CORS-politik for frontend (dev + Docker)
+// ------------------- CORS -------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
-            "http://localhost:5173",
-            "http://127.0.0.1:5174",
-            "http://localhost:3000",
-            "http://growheat-frontend:3000"
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+                "http://localhost:5173",
+                "http://127.0.0.1:5174",
+                "http://localhost:3000",
+                "http://growheat-frontend:3000"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
-// Registrer gRPC-klient og services
-builder.Services.AddScoped<IUserService, UserServiceClient>();
+// ------------------- JWT via COOKIE -------------------
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+    ?? throw new InvalidOperationException("JWT_SECRET er ikke sat i .env");
+
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSecret)
+            )
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Hent fra Cookie
+                var cookieToken = context.Request.Cookies["jwt"];
+                if (!string.IsNullOrEmpty(cookieToken))
+                {
+                    Console.WriteLine("Token hentet fra cookie.");
+                    context.Token = cookieToken;
+                    return Task.CompletedTask;
+                }
+
+                // TIL POSTMAN TESTING (DEN FORSTÅR IKKE COOKIES LOL (._.)
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                {
+                    context.Token = authHeader.Substring("Bearer ".Length);
+                    Console.WriteLine("Token hentet fra Authorization header.");
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAuth", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    });
+});
+
+// ------------------- gRPC-klienter -------------------
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
 {
     o.Address = new Uri("http://user-service:5001");
@@ -53,10 +107,9 @@ builder.Services.AddHttpClient("IotAPI", c =>
     c.BaseAddress = new Uri("http://iot-container:8080");
 });
 
-// Tilføj controllere
+// ------------------- Controllers & YARP -------------------
 builder.Services.AddControllers();
 
-// Konfigurer YARP + tilføj CORS headers til proxy-responses blabla
 builder.Services
     .AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
@@ -70,11 +123,13 @@ builder.Services
 
 var app = builder.Build();
 
-// Routing og CORS
+// ------------------- Middleware Pipeline -------------------
+
 app.UseRouting();
+
 app.UseCors("AllowFrontend");
 
-// Håndter preflight OPTIONS requests
+// Preflight OPTIONS-handler
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
@@ -88,10 +143,14 @@ app.Use(async (context, next) =>
     }
 });
 
-// Healthcheck endpoint
+// Auth Middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Healthcheck
 app.MapGet("/health", () => Results.Ok("Gateway is running"));
 
-// Map controllere og proxy
+// API Routes
 app.MapControllers();
 app.MapReverseProxy();
 
