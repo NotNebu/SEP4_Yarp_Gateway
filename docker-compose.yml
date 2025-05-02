@@ -3,13 +3,15 @@ version: '3.8'
 services:
   gateway:
     build:
-      context: .                 # Byg Docker-image ud fra Dockerfile i rodmappen
+      context: .
     container_name: yarp-gateway
     ports:
-      - "5107:5107"              # Gør YARP Gateway tilgængelig på localhost:5107
+      - "5107:5107"
     restart: unless-stopped
-    networks:                   
-      - SEP4_NETWORK            # Tilknyt gateway til det eksterne netværk
+    env_file:
+      - .env
+    networks:
+      - SEP4_NETWORK
 
 networks:
   SEP4_NETWORK:
