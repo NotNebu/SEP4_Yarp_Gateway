@@ -5,6 +5,7 @@ using System.Text;
 using APII;
 using Newtonsoft.Json;
 using ApiGateway.DTOs;
+using MLService.Models.Prediction;
 
 namespace ApiGateway.Yarp.Controllers.Mal
 {
@@ -80,16 +81,57 @@ public async Task<IActionResult> TrainModel()
 
         
         
-        [HttpPost("predict")]
-        public async Task<IActionResult> PostPredictionRequest([FromBody] object modelData)
+        [HttpPost("rfc")]
+        public async Task<IActionResult> PostRfcPrediction([FromBody] Rfc_PredictionRequest data)
         {
-            var json = JsonConvert.SerializeObject(modelData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            try
+            {
+                // Serialize the prediction request object into JSON
+                var json = JsonConvert.SerializeObject(data);
 
-            var response = await _httpClient.PostAsync("/predict", content);
-            var result = await response.Content.ReadAsStringAsync();
+                // Create the content with the serialized JSON
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return StatusCode((int)response.StatusCode, result);
+                // Make the POST request to the ML service for RFC prediction
+                var response = await _httpClient.PostAsync("/api/prediction/rfc-predict", content);
+
+                // Read the response content
+                var result = await response.Content.ReadAsStringAsync();
+
+                // Return appropriate response based on success or failure
+                return StatusCode((int)response.StatusCode, result);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions during the request
+                return BadRequest($"Error during RFC prediction: {ex.Message}");
+            }
+        }
+        [HttpPost("logistic")]
+        public async Task<IActionResult> PostLogisticPrediction([FromBody] LogisticPredictionRequest data)
+        {
+            try
+            {
+                // Serialize the prediction request object into JSON
+                var json = JsonConvert.SerializeObject(data);
+
+                // Create the content with the serialized JSON
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Make the POST request to the ML service for Logistic prediction
+                var response = await _httpClient.PostAsync("/api/prediction/logistic", content);
+
+                // Read the response content
+                var result = await response.Content.ReadAsStringAsync();
+
+                // Return appropriate response based on success or failure
+                return StatusCode((int)response.StatusCode, result);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions during the request
+                return BadRequest($"Error during Logistic prediction: {ex.Message}");
+            }
         }
     }
     
