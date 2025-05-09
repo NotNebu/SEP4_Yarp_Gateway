@@ -16,6 +16,7 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5107, listenOptions =>
     {
+        listenOptions.UseHttps("/https/localhost-user-service.p12", "changeit"); // 'changeit' = password fra mkcert
         listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 });
@@ -26,10 +27,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:5173",
-                "http://127.0.0.1:5174",
-                "http://localhost:3000",
-                "http://growheat-frontend:3000"
+                "https://localhost"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -55,30 +53,31 @@ builder.Services.AddAuthentication("Bearer")
             )
         };
 
-        options.Events = new JwtBearerEvents
+options.Events = new JwtBearerEvents
+{
+    OnMessageReceived = context =>
+    {
+        var cookieToken = context.Request.Cookies["jwt"];
+        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+
+        if (!string.IsNullOrEmpty(cookieToken))
         {
-            OnMessageReceived = context =>
-            {
-                // Hent fra Cookie
-                var cookieToken = context.Request.Cookies["jwt"];
-                if (!string.IsNullOrEmpty(cookieToken))
-                {
-                    Console.WriteLine("Token hentet fra cookie.");
-                    context.Token = cookieToken;
-                    return Task.CompletedTask;
-                }
+            Console.WriteLine("✅ JWT-token fundet i cookie: " + cookieToken.Substring(0, 20) + "...");
+            context.Token = cookieToken;
+        }
+        else if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+        {
+            context.Token = authHeader.Substring("Bearer ".Length);
+            Console.WriteLine("✅ JWT-token fundet i Authorization header.");
+        }
+        else
+        {
+            Console.WriteLine("❌ Ingen token fundet (hverken i cookie eller header).");
+        }
 
-                // TIL POSTMAN TESTING (DEN FORSTÅR IKKE COOKIES LOL (._.)
-                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-                {
-                    context.Token = authHeader.Substring("Bearer ".Length);
-                    Console.WriteLine("Token hentet fra Authorization header.");
-                }
-
-                return Task.CompletedTask;
-            }
-        };
+        return Task.CompletedTask;
+    }
+};
     });
 
 builder.Services.AddAuthorization();
@@ -94,7 +93,7 @@ builder.Services.AddAuthorization(options =>
 // ------------------- gRPC-klienter -------------------
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
 {
-    o.Address = new Uri("http://user-service:5001");
+    o.Address = new Uri("https://user-service:5001");
 });
 
 builder.Services.AddHttpClient("MalAPI", c =>
@@ -115,7 +114,7 @@ builder.Services
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
     .AddTransforms(builderContext =>
     {
-        builderContext.AddResponseHeader("Access-Control-Allow-Origin", "http://localhost:3000", append: false);
+        builderContext.AddResponseHeader("Access-Control-Allow-Origin", "https://localhost:3000", append: false);
         builderContext.AddResponseHeader("Access-Control-Allow-Credentials", "true", append: false);
         builderContext.AddResponseHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS", append: false);
         builderContext.AddResponseHeader("Access-Control-Allow-Headers", "*", append: false);
@@ -124,6 +123,11 @@ builder.Services
 var app = builder.Build();
 
 // ------------------- Middleware Pipeline -------------------
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All
+});
 
 app.UseRouting();
 
@@ -152,6 +156,17 @@ app.MapGet("/health", () => Results.Ok("Gateway is running"));
 
 // API Routes
 app.MapControllers();
-app.MapReverseProxy();
+app.MapReverseProxy(proxyPipeline =>
+{
+    proxyPipeline.Use(async (context, next) =>
+    {
+        var cookie = context.Request.Headers["Cookie"].ToString();
+        if (!string.IsNullOrEmpty(cookie))
+        {
+            Console.WriteLine($"🍪 Cookie sendt til backend: {cookie}");
+        }
+        await next();
+    });
+});
 
 app.Run();
