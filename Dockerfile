@@ -15,11 +15,20 @@
     COPY . .
     RUN dotnet publish ApiGateway.Yarp.csproj -c Release -o /app/publish
     
-    # ---------- Final stage: Kørsel med kun runtime ----------
+    # ---------- Final stage ----------
     FROM base AS final
     WORKDIR /app
+
+    # Kopiér build-output
     COPY --from=build /app/publish .
-    
-    # Start applikationen
+
+    # Kopiér HTTPS-certifikat
+    COPY certs/localhost-user-service.p12 /https/localhost-user-service.p12
+    COPY certs/rootCA.crt /usr/local/share/ca-certificates/rootCA.crt
+    RUN update-ca-certificates
+
+    # Fortæl ASP.NET at bruge HTTPS med certifikat
+    ENV ASPNETCORE_Kestrel__Certificates__Default__Path="/https/localhost-user-service.p12"
+    ENV ASPNETCORE_Kestrel__Certificates__Default__Password="changeit"
+
     ENTRYPOINT ["dotnet", "ApiGateway.Yarp.dll"]
-    
