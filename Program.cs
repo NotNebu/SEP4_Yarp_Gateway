@@ -2,10 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
+using DotNetEnv;
 using UserService.Grpc;
 using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Transforms;
-using DotNetEnv;
 
 Env.Load();
 
@@ -16,28 +16,33 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5107, listenOptions =>
     {
+        listenOptions.UseHttps("/https/localhost-user-service.p12", "changeit");
         listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 });
+
+// ------------------- KONFIGURATIONER (YARP-SPLIT) -------------------
+builder.Configuration
+    .AddJsonFile("Configuration/Routes.Auth.json", optional: true)
+    .AddJsonFile("Configuration/Routes.User.json", optional: true)
+    .AddJsonFile("Configuration/Routes.Iot.json", optional: true)
+    .AddJsonFile("Configuration/Routes.Mal.json", optional: true)
+    .AddJsonFile("Configuration/Clusters.json", optional: true)
+    .AddEnvironmentVariables();
 
 // ------------------- CORS -------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "http://127.0.0.1:5174",
-                "http://localhost:3000",
-                "http://growheat-frontend:3000"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.WithOrigins("https://localhost")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
-// ------------------- JWT via COOKIE -------------------
+// ------------------- JWT VIA COOKIE -------------------
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
     ?? throw new InvalidOperationException("JWT_SECRET er ikke sat i .env");
 
@@ -59,29 +64,28 @@ builder.Services.AddAuthentication("Bearer")
         {
             OnMessageReceived = context =>
             {
-                // Hent fra Cookie
                 var cookieToken = context.Request.Cookies["jwt"];
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+
                 if (!string.IsNullOrEmpty(cookieToken))
                 {
-                    Console.WriteLine("Token hentet fra cookie.");
+                    Console.WriteLine("✅ JWT-token fundet i cookie: " + cookieToken.Substring(0, 20) + "...");
                     context.Token = cookieToken;
-                    return Task.CompletedTask;
                 }
-
-                // TIL POSTMAN TESTING (DEN FORSTÅR IKKE COOKIES LOL (._.)
-                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                else if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
                 {
                     context.Token = authHeader.Substring("Bearer ".Length);
-                    Console.WriteLine("Token hentet fra Authorization header.");
+                    Console.WriteLine("✅ JWT-token fundet i Authorization header.");
+                }
+                else
+                {
+                    Console.WriteLine("❌ Ingen token fundet (hverken i cookie eller header).");
                 }
 
                 return Task.CompletedTask;
             }
         };
     });
-
-builder.Services.AddAuthorization();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -91,12 +95,13 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-// ------------------- gRPC-klienter -------------------
+// ------------------- gRPC-KLIENTER -------------------
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
 {
-    o.Address = new Uri("http://user-service:5001");
+    o.Address = new Uri("https://user-service:5001");
 });
 
+// ------------------- HTTP-KLIENTER -------------------
 builder.Services.AddHttpClient("MalAPI", c =>
 {
     c.BaseAddress = new Uri("http://Sep4-API-Service:8080");
@@ -107,7 +112,7 @@ builder.Services.AddHttpClient("IotAPI", c =>
     c.BaseAddress = new Uri("http://iot-container:8080");
 });
 
-// ------------------- Controllers & YARP -------------------
+// ------------------- CONTROLLERS + YARP -------------------
 builder.Services.AddControllers();
 
 builder.Services
@@ -115,7 +120,7 @@ builder.Services
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
     .AddTransforms(builderContext =>
     {
-        builderContext.AddResponseHeader("Access-Control-Allow-Origin", "http://localhost:3000", append: false);
+        builderContext.AddResponseHeader("Access-Control-Allow-Origin", "https://localhost:3000", append: false);
         builderContext.AddResponseHeader("Access-Control-Allow-Credentials", "true", append: false);
         builderContext.AddResponseHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS", append: false);
         builderContext.AddResponseHeader("Access-Control-Allow-Headers", "*", append: false);
@@ -123,13 +128,15 @@ builder.Services
 
 var app = builder.Build();
 
-// ------------------- Middleware Pipeline -------------------
+// ------------------- MIDDLEWARE PIPELINE -------------------
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All
+});
 
 app.UseRouting();
-
 app.UseCors("AllowFrontend");
 
-// Preflight OPTIONS-handler
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
@@ -143,15 +150,26 @@ app.Use(async (context, next) =>
     }
 });
 
-// Auth Middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Healthcheck
+// ------------------- HEALTHCHECK -------------------
 app.MapGet("/health", () => Results.Ok("Gateway is running"));
 
-// API Routes
+// ------------------- ROUTES -------------------
 app.MapControllers();
-app.MapReverseProxy();
+app.MapReverseProxy(proxyPipeline =>
+{
+    proxyPipeline.Use(async (context, next) =>
+    {
+        var cookie = context.Request.Headers["Cookie"].ToString();
+        if (!string.IsNullOrEmpty(cookie))
+        {
+            Console.WriteLine($"🍪 Cookie sendt til backend: {cookie}");
+        }
+
+        await next();
+    });
+});
 
 app.Run();

@@ -1,0 +1,18 @@
+{
+  "ReverseProxy": {
+    "Routes": {
+      "authDirect": {
+        "ClusterId": "userService",
+        "Match": {
+          "Path": "/AuthService/{**catch-all}"
+        }
+      },
+      "authRoute": {
+        "ClusterId": "userService",
+        "Match": {
+          "Path": "/api/auth/{**catch-all}"
+        }
+      }
+    }
+  }
+}
