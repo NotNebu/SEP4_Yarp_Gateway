@@ -6,6 +6,7 @@ using APII;
 using Newtonsoft.Json;
 using ApiGateway.DTOs;
 using MLService.Models.Prediction;
+using Newtonsoft.Json.Linq;
 
 namespace ApiGateway.Yarp.Controllers.Mal
 {
@@ -80,60 +81,66 @@ public async Task<IActionResult> TrainModel()
         }
 
         
-        
-        [HttpPost("rfc")]
-        public async Task<IActionResult> PostRfcPrediction([FromBody] Rfc_PredictionRequest data)
+         [HttpPost("predict")]
+        public async Task<IActionResult> PredictUnified()
         {
             try
             {
-                // Serialize the prediction request object into JSON
-                var json = JsonConvert.SerializeObject(data);
+                using var reader = new StreamReader(Request.Body);
+                var body = await reader.ReadToEndAsync();
 
-                // Create the content with the serialized JSON
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                if (string.IsNullOrWhiteSpace(body))
+                    return BadRequest("Request body is empty.");
 
-                // Make the POST request to the ML service for RFC prediction
-                var response = await _httpClient.PostAsync("/api/prediction/rfc-predict", content);
+                JObject jsonObj;
+                try
+                {
+                    jsonObj = JObject.Parse(body);
+                }
+                catch (JsonReaderException jex)
+                {
+                    return BadRequest($"Invalid JSON format: {jex.Message}");
+                }
 
-                // Read the response content
-                var result = await response.Content.ReadAsStringAsync();
+                var typeOfModel = jsonObj["TypeofModel"]?.ToString();
+                if (string.IsNullOrWhiteSpace(typeOfModel))
+                    return BadRequest("Missing 'TypeofModel' in request body.");
 
-                // Return appropriate response based on success or failure
-                return StatusCode((int)response.StatusCode, result);
+                string targetUrl;
+                StringContent content;
+
+                if (typeOfModel.Equals("logistic", StringComparison.OrdinalIgnoreCase))
+                {
+                    var logisticRequest = jsonObj.ToObject<LogisticPredictionRequest>();
+                    var json = JsonConvert.SerializeObject(logisticRequest);
+                    content = new StringContent(json, Encoding.UTF8, "application/json");
+                    targetUrl = "/api/sensor/predict";
+                }
+                else if (typeOfModel.Equals("rfc", StringComparison.OrdinalIgnoreCase))
+                {
+                    var rfcRequest = jsonObj.ToObject<Rfc_PredictionRequest>();
+                    var json = JsonConvert.SerializeObject(rfcRequest);
+                    content = new StringContent(json, Encoding.UTF8, "application/json");
+                    targetUrl = "/api/sensor/predict";
+                }
+                else
+                {
+                    return BadRequest("Unsupported TypeofModel. Use 'logistic' or 'rfc'.");
+                }
+
+                var response = await _httpClient.PostAsync(targetUrl, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                return StatusCode((int)response.StatusCode, responseContent);
             }
             catch (Exception ex)
             {
-                // Handle any exceptions during the request
-                return BadRequest($"Error during RFC prediction: {ex.Message}");
-            }
-        }
-        [HttpPost("logistic")]
-        public async Task<IActionResult> PostLogisticPrediction([FromBody] LogisticPredictionRequest data)
-        {
-            try
-            {
-                // Serialize the prediction request object into JSON
-                var json = JsonConvert.SerializeObject(data);
-
-                // Create the content with the serialized JSON
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Make the POST request to the ML service for Logistic prediction
-                var response = await _httpClient.PostAsync("/api/prediction/logistic", content);
-
-                // Read the response content
-                var result = await response.Content.ReadAsStringAsync();
-
-                // Return appropriate response based on success or failure
-                return StatusCode((int)response.StatusCode, result);
-            }
-            catch (Exception ex)
-            {
-                // Handle any exceptions during the request
-                return BadRequest($"Error during Logistic prediction: {ex.Message}");
+                return BadRequest($"Error during prediction: {ex.Message}");
             }
         }
     }
+        
     
-    //
-}
+    }
+    
+    
