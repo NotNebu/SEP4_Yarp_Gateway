@@ -42,7 +42,7 @@
       "mal.predict": {
         "ClusterId": "malService",
         "Match": {
-          "Path": "/api/predict",
+          "Path": "/api/sensor/predict",
           "Methods": [ "POST" ]
         },
         "AuthorizationPolicy": "RequireAuth",
