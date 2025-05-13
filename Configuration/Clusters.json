@@ -11,7 +11,7 @@
       "malService": {
         "Destinations": {
           "destination1": {
-            "Address": "http://mal-service:8080"
+            "Address": "http://sep4-api-service:8080"
           }
         }
       },

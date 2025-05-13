@@ -4,7 +4,7 @@
       "mal.getSensors": {
         "ClusterId": "malService",
         "Match": {
-          "Path": "/api/mal/sensors",
+          "Path": "/api/sensor",
           "Methods": [ "GET" ]
         },
         "AuthorizationPolicy": "RequireAuth"
@@ -12,7 +12,7 @@
       "mal.postSensors": {
         "ClusterId": "malService",
         "Match": {
-          "Path": "/api/mal/sensors",
+          "Path": "/api/sensor",
           "Methods": [ "POST" ]
         },
         "AuthorizationPolicy": "RequireAuth",
@@ -26,7 +26,7 @@
       "mal.getModel": {
         "ClusterId": "malService",
         "Match": {
-          "Path": "/api/mal/model",
+          "Path": "/api/model",
           "Methods": [ "GET" ]
         },
         "AuthorizationPolicy": "RequireAuth"
@@ -34,7 +34,7 @@
       "mal.trainModel": {
         "ClusterId": "malService",
         "Match": {
-          "Path": "/api/mal/train-model",
+          "Path": "/api/train-model",
           "Methods": [ "GET" ]
         },
         "AuthorizationPolicy": "RequireAuth"
@@ -42,7 +42,7 @@
       "mal.predict": {
         "ClusterId": "malService",
         "Match": {
-          "Path": "/api/mal/predict",
+          "Path": "/api/predict",
           "Methods": [ "POST" ]
         },
         "AuthorizationPolicy": "RequireAuth",
