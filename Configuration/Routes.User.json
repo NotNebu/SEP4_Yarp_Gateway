@@ -20,7 +20,14 @@
           "Path": "/api/experiment/{**catch-all}"
         },
         "AuthorizationPolicy": "RequireAuth"
-      }
+      },
+      "predictionRoute": {
+      "ClusterId": "userService",
+      "Match": {
+        "Path": "/api/prediction/{**catch-all}"
+      },
+      "AuthorizationPolicy": "RequireAuth"
+    } 
     }
   }
 }
