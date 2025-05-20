@@ -26,7 +26,7 @@
       "mal.getModel": {
         "ClusterId": "malService",
         "Match": {
-          "Path": "/api/model",
+          "Path": "/api/sensor/model",
           "Methods": [ "GET" ]
         },
         "AuthorizationPolicy": "RequireAuth"
