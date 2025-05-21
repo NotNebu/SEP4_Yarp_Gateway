@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using DotNetEnv;
-using UserService.Grpc;
 using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Transforms;
 
@@ -69,17 +68,11 @@ builder.Services.AddAuthentication("Bearer")
 
                 if (!string.IsNullOrEmpty(cookieToken))
                 {
-                    Console.WriteLine("✅ JWT-token fundet i cookie: " + cookieToken.Substring(0, 20) + "...");
                     context.Token = cookieToken;
                 }
                 else if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
                 {
                     context.Token = authHeader.Substring("Bearer ".Length);
-                    Console.WriteLine("✅ JWT-token fundet i Authorization header.");
-                }
-                else
-                {
-                    Console.WriteLine("❌ Ingen token fundet (hverken i cookie eller header).");
                 }
 
                 return Task.CompletedTask;
@@ -87,29 +80,12 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
-builder.Services.AddAuthorization(options =>
+    builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAuth", policy =>
     {
         policy.RequireAuthenticatedUser();
     });
-});
-
-// ------------------- gRPC-KLIENTER -------------------
-builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(o =>
-{
-    o.Address = new Uri("https://user-service:5001");
-});
-
-// ------------------- HTTP-KLIENTER -------------------
-builder.Services.AddHttpClient("MalAPI", c =>
-{
-    c.BaseAddress = new Uri("http://Sep4-API-Service:8080");
-});
-
-builder.Services.AddHttpClient("IotAPI", c =>
-{
-    c.BaseAddress = new Uri("http://iot-container:8080");
 });
 
 // ------------------- CONTROLLERS + YARP -------------------
@@ -153,23 +129,8 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ------------------- HEALTHCHECK -------------------
-app.MapGet("/health", () => Results.Ok("Gateway is running"));
-
 // ------------------- ROUTES -------------------
 app.MapControllers();
-app.MapReverseProxy(proxyPipeline =>
-{
-    proxyPipeline.Use(async (context, next) =>
-    {
-        var cookie = context.Request.Headers["Cookie"].ToString();
-        if (!string.IsNullOrEmpty(cookie))
-        {
-            Console.WriteLine($"🍪 Cookie sendt til backend: {cookie}");
-        }
-
-        await next();
-    });
-});
+app.MapReverseProxy();
 
 app.Run();
