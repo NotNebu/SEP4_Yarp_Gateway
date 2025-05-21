@@ -1,0 +1,92 @@
+{
+  "ReverseProxy": {
+    "Routes": {
+      "iot.getAllExperiments": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.getExperimentById": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/{experimentId}",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.getMeasurements": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/{experimentId}/measurements",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.getLatestMeasurements": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/{experimentId}/measurements/latest",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.exportCsv": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/{experimentId}/export/csv",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.exportJson": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/{experimentId}/export/json",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.createExperiment": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments",
+          "Methods": [ "POST" ]
+        },
+        "AuthorizationPolicy": "RequireAuth",
+        "Transforms": [
+          {
+            "RequestHeader": "Content-Type",
+            "Set": "application/json"
+          }
+        ]
+      },
+      "iot.activateExperiment": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/{experimentId}/activate",
+          "Methods": [ "PUT" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.getActiveExperiment": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/active",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "iot.deleteExperiment": {
+        "ClusterId": "iotService",
+        "Match": {
+          "Path": "/api/iot/experiments/{id}",
+          "Methods": [ "DELETE" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      }
+    }
+  }
+}

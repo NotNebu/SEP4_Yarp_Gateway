@@ -1,0 +1,34 @@
+{
+  "ReverseProxy": {
+    "Clusters": {
+      "iotService": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://iot-service:8080"
+          }
+        }
+      },
+      "malService": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://sep4-api-service:8080"
+          }
+        }
+      },
+      "userService": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://user-service:5001"
+          }
+        }
+      },
+      "modelTrainingService": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://API-container:8080"
+          }
+        }
+      }
+    }
+  }
+}

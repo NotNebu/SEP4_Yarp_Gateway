@@ -1,0 +1,33 @@
+{
+  "ReverseProxy": {
+    "Routes": {
+      "userGrpc": {
+        "ClusterId": "userService",
+        "Match": {
+          "Path": "/user.grpc.AuthService/{**catch-all}"
+        }
+      },
+      "accountRoute": {
+        "ClusterId": "userService",
+        "Match": {
+          "Path": "/api/account/{**catch-all}"
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "experimentRoute": {
+        "ClusterId": "userService",
+        "Match": {
+          "Path": "/api/experiment/{**catch-all}"
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "predictionRoute": {
+      "ClusterId": "userService",
+      "Match": {
+        "Path": "/api/prediction/{**catch-all}"
+      },
+      "AuthorizationPolicy": "RequireAuth"
+    } 
+    }
+  }
+}

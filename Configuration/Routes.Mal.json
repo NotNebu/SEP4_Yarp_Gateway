@@ -1,0 +1,65 @@
+{
+  "ReverseProxy": {
+    "Routes": {
+      "mal.getSensors": {
+        "ClusterId": "malService",
+        "Match": {
+          "Path": "/api/sensor",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "mal.postSensors": {
+        "ClusterId": "malService",
+        "Match": {
+          "Path": "/api/sensor",
+          "Methods": [ "POST" ]
+        },
+        "AuthorizationPolicy": "RequireAuth",
+        "Transforms": [
+          {
+            "RequestHeader": "Content-Type",
+            "Set": "application/json"
+          }
+        ]
+      },
+      "mal.getModel": {
+        "ClusterId": "malService",
+        "Match": {
+          "Path": "/api/sensor/model",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "mal.trainModel": {
+        "ClusterId": "malService",
+        "Match": {
+          "Path": "/api/train-model",
+          "Methods": [ "GET" ]
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      },
+      "mal.predict": {
+        "ClusterId": "malService",
+        "Match": {
+          "Path": "/api/sensor/predict",
+          "Methods": [ "POST" ]
+        },
+        "AuthorizationPolicy": "RequireAuth",
+        "Transforms": [
+          {
+            "RequestHeader": "Content-Type",
+            "Set": "application/json"
+          }
+        ]
+      },
+      "mal.modelTrainingLegacy": {
+        "ClusterId": "malService",
+        "Match": {
+          "Path": "/ModelTraining/{**catch-all}"
+        },
+        "AuthorizationPolicy": "RequireAuth"
+      }
+    }
+  }
+}

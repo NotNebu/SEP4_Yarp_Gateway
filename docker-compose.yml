@@ -4,5 +4,17 @@ services:
   gateway:
     build:
       context: .
+    container_name: yarp-gateway
     ports:
-      - "8080:80"
+      - "5107:5107"
+    volumes:
+      - ./certs:/https
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - SEP4_NETWORK
+
+networks:
+  SEP4_NETWORK:
+    external: true
